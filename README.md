@@ -1,3 +1,12 @@
+# Devents
+demo: https://echonetdev.github.io/devents/
+
+This dapp, Devents, is a new environment where users can create events, with a title, an image, and info about the event, like the date, the location, and a little description.
+
+When a user uploads an event, he can edit it, and all the other users can see other events, buy an assistance, and when they unlock it, they can see who else assist to the event.
+
+At the top of the page, below the navbar, is a banner where the last event created shows.
+
 # Install
 
 ```
