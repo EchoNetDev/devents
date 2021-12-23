@@ -77,12 +77,19 @@ const getProducts = async function() {
 
 async function renderProducts() {
   document.getElementById("marketplace").innerHTML = ""
-  products.forEach(async (_product) => {
+  const tmp = products.slice()
+  tmp.pop()
+  var d1 = new Date();
+  const parsed = Date.parse(d1);
+  tmp.forEach(async (_product) => {
     const newDiv = document.createElement("div")
     const _attendees = await contract.methods.getAttendees(_product.index).call()
     newDiv.className = "col-md-4"
     if(_product.creator == kit.defaultAccount){
         newDiv.innerHTML = ownProductTemplate(_product, _attendees.length)
+    }
+    else if (parsed > Date.parse(_product.time)){
+        newDiv.innerHTML = pastProductTemplate(_product, _attendees.length)
     }
     else if (!_attendees.includes(kit.defaultAccount)) {
         newDiv.innerHTML = productTemplate(_product, _attendees.length)
@@ -112,13 +119,15 @@ async function renderBanner() {
     const _price = parseInt(bannerEvent[6]) / 1000000000000000000;
     document.getElementById("banner-title").innerText = _event.title;
     document.getElementById("banner-desc").innerText = _event.description;
-    document.getElementById("banner-info").innerText = _event.location; + " / " + _event.time;;
+    document.getElementById("banner-info").innerText = _event.location + " / " + _event.time;
     document.getElementById("banner-image").src = _event.image;;
     document.getElementsByClassName("attend")[0].id = _productsLength-1;
     document.getElementsByClassName("attend")[0].innerText = "";
 
     const _attendees = await contract.methods.getAttendees(_event.index).call()
 
+    var d1 = new Date();
+    const parsed = Date.parse(d1);
 
     if(_event.creator == kit.defaultAccount){
         document.getElementsByClassName("attend")[0].innerHTML = `
@@ -127,6 +136,15 @@ async function renderBanner() {
         }>
             Edit
         </a>
+        `
+    }
+    else if (parsed > Date.parse(_event.time)) {
+        document.getElementsByClassName("attend")[0].innerHTML = `
+        <button disabled class="btn btn-lg btn-outline-light fs-6 p-3" id=${
+            _product.index
+        }>
+            Past Event
+        </button>
         `
     }
     else if (_attendees.includes(kit.defaultAccount)) {
@@ -178,6 +196,37 @@ function productTemplate(_product, _number) {
       </div>
     </div>
   `
+}
+
+function pastProductTemplate(_product, _number) {
+    return `
+        <div class="card mb-4">
+        <img class="card-img-top" src="${_product.image}" alt="...">
+        <div class="position-absolute top-0 end-0 bg-warning mt-4 px-2 py-1 rounded-start">
+            ${_number} Attendees
+        </div>
+        <div class="card-body text-left p-4 position-relative">
+            <div class="translate-middle-y position-absolute top-0">
+            ${identiconTemplate(_product.creator)}
+            </div>
+            <h2 class="card-title fs-4 fw-bold mt-2">${_product.title}</h2>
+            <p class="card-text mb-4" style="min-height: 82px">
+            ${_product.description}             
+            </p>
+            <p class="card-text mt-4">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>${_product.location} / ${_product.time}</span>
+            </p>
+            <div class="d-grid gap-2">
+            <button disabled class="btn btn-lg btn-outline-light fs-6 p-3" id=${
+                _product.index
+            }>
+                Past Event
+            </button>
+            </div>
+        </div>
+        </div>
+    `
 }
 
 function ownProductTemplate(_product, _number) {
@@ -355,7 +404,7 @@ document.querySelector("#market").addEventListener("click", async (e) => {
 
     editIndex = e.target.id;
 
-    document.getElementById("newProductModalLabel").value = "Edit Event"
+    document.getElementById("newProductModalLabel").innerText = "Edit Event"
     document.getElementById("newProductName").value = event[1]
     document.getElementById("newImgUrl").value = event[2]
     document.getElementById("newProductDescription").value = event[3]
@@ -384,7 +433,7 @@ document.querySelector("#market").addEventListener("click", async (e) => {
 
 document.querySelector("#add").addEventListener("click", async (e) => {
 
-    document.getElementById("newProductModalLabel").value = "Add Event"
+    document.getElementById("newProductModalLabel").innerText = "Add Event"
     document.getElementById("newProductName").value = ""
     document.getElementById("newImgUrl").value = ""
     document.getElementById("newProductDescription").value = ""
