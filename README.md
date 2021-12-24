@@ -7,7 +7,7 @@ When a user uploads an event, he can edit it, and all the other users can see ot
 
 At the top of the page, below the navbar, is a banner where the last event created shows.
 
-## Solidity functions
+## Contract Methods
 
 attendEvent: Adds the address of the buyer to the array of asistants to the event, also, transacts the pay to the crator of the event
 
