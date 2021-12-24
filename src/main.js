@@ -1,12 +1,10 @@
 import Web3 from "web3"
-import { newKitFromWeb3 } from "@celo/contractkit"
+import {newKitFromWeb3} from "@celo/contractkit"
 import BigNumber from "bignumber.js"
 import marketplaceAbi from "../contract/marketplace.abi.json"
 import erc20Abi from "../contract/erc20.abi.json"
+import {cUSDContractAddress, ERC20_DECIMALS, MPContractAddress} from "./utils/constants";
 
-const ERC20_DECIMALS = 18
-const MPContractAddress = "0xEA6CFe41687597EbE06a27008D795Eef2Ea94D9d"
-const cUSDContractAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"
 
 let kit
 let contract
@@ -39,9 +37,9 @@ const connectCeloWallet = async function () {
 async function approve(_price) {
   const cUSDContract = new kit.web3.eth.Contract(erc20Abi, cUSDContractAddress)
 
-  const result = await cUSDContract.methods
-    .approve(MPContractAddress, _price)
-    .send({ from: kit.defaultAccount })
+    await cUSDContract.methods
+        .approve(MPContractAddress, _price)
+        .send({from: kit.defaultAccount})
   return result
 }
 
@@ -55,17 +53,17 @@ const getProducts = async function() {
   const _productsLength = await contract.methods.getEventsLength().call()
   const _products = []
   for (let i = 0; i <= _productsLength-1; i++) {
-    let _product = new Promise(async (resolve, reject) => {
-      let p = await contract.methods.getEvent(i).call()
-      resolve({
-        index: i,
-        creator: p[0],
-        title: p[1],
-        image: p[2],
-        description: p[3],
-        location: p[4],
-        time: p[5],
-        price: new BigNumber(p[6])
+      let _product = new Promise(async (resolve) => {
+          let p = await contract.methods.getEvent(i).call()
+          resolve({
+              index: i,
+              creator: p[0],
+              title: p[1],
+              image: p[2],
+              description: p[3],
+              location: p[4],
+              time: p[5],
+              price: new BigNumber(p[6])
       })
     })
     _products.push(_product)
@@ -116,12 +114,12 @@ async function renderBanner() {
         price: new BigNumber(bannerEvent[6])
     };
 
-    const _price = parseInt(bannerEvent[6]) / 1000000000000000000;
+
     document.getElementById("banner-title").innerText = _event.title;
     document.getElementById("banner-desc").innerText = _event.description;
     document.getElementById("banner-info").innerText = _event.location + " / " + _event.time;
-    document.getElementById("banner-image").src = _event.image;;
-    document.getElementsByClassName("attend")[0].id = _productsLength-1;
+    document.getElementById("banner-image").src = _event.image;
+    document.getElementsByClassName("attend")[0].id = _productsLength - 1;
     document.getElementsByClassName("attend")[0].innerText = "";
 
     const _attendees = await contract.methods.getAttendees(_event.index).call()
@@ -328,23 +326,23 @@ window.addEventListener("load", async () => {
 });
 
 document
-  .querySelector("#newProductBtn")
-  .addEventListener("click", async (e) => {
-    const params = [
-      document.getElementById("newProductName").value,
-      document.getElementById("newImgUrl").value,
-      document.getElementById("newProductDescription").value,
-      document.getElementById("newLocation").value,
-      document.getElementById("newTime").value,
-      new BigNumber(document.getElementById("newPrice").value)
-      .shiftedBy(ERC20_DECIMALS)
-      .toString()
-    ]
+    .querySelector("#newProductBtn")
+    .addEventListener("click", async () => {
+        const params = [
+            document.getElementById("newProductName").value,
+            document.getElementById("newImgUrl").value,
+            document.getElementById("newProductDescription").value,
+            document.getElementById("newLocation").value,
+            document.getElementById("newTime").value,
+            new BigNumber(document.getElementById("newPrice").value)
+                .shiftedBy(ERC20_DECIMALS)
+                .toString()
+        ]
     notification(`⌛ Adding ...`)
     try {
-      const result = await contract.methods
-        .createEvent(...params)
-        .send({ from: kit.defaultAccount })
+        await contract.methods
+            .createEvent(...params)
+            .send({from: kit.defaultAccount})
     } catch (error) {
       notification(`⚠️ ${error}.`)
     }
@@ -353,7 +351,7 @@ document
   })
 
 
-document.querySelector("#editProductBtn").addEventListener("click", async (e) => {
+document.querySelector("#editProductBtn").addEventListener("click", async () => {
     const params = [
         editIndex,
         document.getElementById("newProductName").value,
@@ -362,14 +360,14 @@ document.querySelector("#editProductBtn").addEventListener("click", async (e) =>
         document.getElementById("newLocation").value,
         document.getElementById("newTime").value,
         new BigNumber(document.getElementById("newPrice").value)
-        .shiftedBy(ERC20_DECIMALS)
-        .toString()
+            .shiftedBy(ERC20_DECIMALS)
+            .toString()
       ]
       notification(`⌛ Editing ...`)
       try {
-        const result = await contract.methods
-          .editEvent(...params)
-          .send({ from: kit.defaultAccount })
+          await contract.methods
+              .editEvent(...params)
+              .send({from: kit.defaultAccount})
       } catch (error) {
         notification(`⚠️ ${error}.`)
       }
@@ -388,10 +386,10 @@ document.querySelector("#market").addEventListener("click", async (e) => {
     }
     notification(`⌛ Awaiting for payment...`)
     try {
-      const result = await contract.methods
-        .attendEvent(index)
-        .send({ from: kit.defaultAccount })
-      notification(`🎉 You successfully reserved it.`)
+        await contract.methods
+            .attendEvent(index)
+            .send({from: kit.defaultAccount})
+        notification(`🎉 You successfully reserved it.`)
       getProducts()
       getBalance()
     } catch (error) {
@@ -429,9 +427,9 @@ document.querySelector("#market").addEventListener("click", async (e) => {
           document.getElementById("attendees-list").appendChild(tmpDiv);
       })
   }
-})  
+})
 
-document.querySelector("#add").addEventListener("click", async (e) => {
+document.querySelector("#add").addEventListener("click", async () => {
 
     document.getElementById("newProductModalLabel").innerText = "Add Event"
     document.getElementById("newProductName").value = ""
@@ -441,6 +439,6 @@ document.querySelector("#add").addEventListener("click", async (e) => {
     document.getElementById("newTime").value = ""
     document.getElementById("newPrice").value = ""
 
-    document.getElementById( 'newProductBtn' ).style.display = 'block';
+    document.getElementById('newProductBtn').style.display = 'block';
     document.getElementById( 'editProductBtn' ).style.display = 'none';
 })
