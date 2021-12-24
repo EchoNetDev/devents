@@ -31,6 +31,7 @@ contract Wall {
     uint256 internal eventsLength = 0;
     address internal cUsdTokenAddress =
         0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+    address adminAddress;
 
     struct Event {
         address payable creator;
@@ -47,11 +48,20 @@ contract Wall {
         string content;
     }
 
+    constructor(){
+        adminAddress = msg.sender;
+    }
+
+    modifier onlyOwnerOrAdmin(uint256 _index) {
+        require(events[_index].creator ==  msg.sender || adminAddress ==  msg.sender, "Only the owner of the event can call this");
+        _;
+    }
+
     mapping(uint256 => Event) internal events;
 
     mapping(uint256 => address[]) internal attendees;
 
-    mapping(address => uint256[]) internal asists;
+    mapping(address => uint256[]) internal assists;
 
     mapping(uint256 => Comment) internal comments;
 
@@ -83,7 +93,7 @@ contract Wall {
         string memory _location,
         string memory _time,
         uint256 _price
-    ) public {
+    ) public onlyOwnerOrAdmin(_index) {
         events[_index] = Event(
             payable(msg.sender),
             _title,
@@ -129,7 +139,7 @@ contract Wall {
             "Transfer failed."
         );
         attendees[_index].push(msg.sender);
-        asists[msg.sender].push(_index);
+        assists[msg.sender].push(_index);
     }
 
     function getEventsLength() public view returns (uint256) {
@@ -144,11 +154,11 @@ contract Wall {
         return (attendees[_index]);
     }
 
-    function getAsists(address _profile)
+    function getAssists(address _profile)
         public
         view
         returns (uint256[] memory)
     {
-        return (asists[_profile]);
+        return (assists[_profile]);
     }
 }
